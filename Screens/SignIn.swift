@@ -13,6 +13,8 @@ import FirebaseCore
 struct SignInView: View {
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var showErrorToast = false
+    @State private var toastMessage = String()
     
     var body: some View {
         NavigationView {
@@ -33,7 +35,14 @@ struct SignInView: View {
                         .padding(.vertical, 20)
                     
                     Button("Login") {
-                        // Login action here
+                        login(email: email, password: password) {
+                            success, error in
+                                if !success  {
+                                    self.showErrorToast.toggle()
+                                    self.toastMessage = error?.localizedDescription ?? "Unknown error"
+                                }
+                                                
+                        }
                     }
                     .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
                     .padding(.bottom, 10)
@@ -65,5 +74,20 @@ struct SignInView: View {
             }
         }
         
+    }
+    
+    private func login(email: String, password: String, completion: @escaping (Bool, Error?) -> Void) {
+            let firebaseManager = FirebaseManager.shared
+            
+        firebaseManager.login(email: email, password: password) { result in
+            switch result {
+            case .success:
+                print("User logged In successfully")
+                completion(true, nil)
+            case .failure(let error):
+                print("Error signing in: \(error.localizedDescription)")
+                completion(false, error)
+            }
+        }
     }
 }

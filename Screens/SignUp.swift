@@ -16,7 +16,7 @@ struct SignUpView: View {
     @State private var confirmPassword: String = ""
     @State private var showErrorToast = false
     @State private var toastMessage = String()
-    @State private var navigateToHome: Bool = false  // Control navigation
+
     
     var body: some View {
         NavigationStack{
@@ -34,7 +34,7 @@ struct SignUpView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                     
-                    TextField("User Name", text: $email)
+                    TextField("User Name", text: $username)
                         .modifier(InputField())
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -62,9 +62,6 @@ struct SignUpView: View {
             }
             
         }
-        .navigationDestination(isPresented: $navigateToHome) {
-           HomeView()
-       }
     }
     
     private func createAccount(email: String, password: String, completion: @escaping (Bool, Error?) -> Void) {
@@ -80,7 +77,7 @@ struct SignUpView: View {
                 completion(false, error)
             }
         }
-        }
+    }
 
 }
 

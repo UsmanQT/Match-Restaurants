@@ -7,10 +7,20 @@
 
 import Foundation
 import SwiftUI
+import FirebaseAuth
 
 
 struct HomeView: View {
     var body: some View {
-        Text("Home")
+        VStack {
+            Text("Home")
+            Button("log out") {
+                do {
+                    try Auth.auth().signOut()
+                } catch {
+                    print("Already logged out")
+                }
+            }
+        }
     }
 }

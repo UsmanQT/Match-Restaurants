@@ -34,6 +34,19 @@ class FirebaseManager {
             }
         }
     }
+    
+    func login(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
+            if let error = error {
+                print("Error signing in:", error.localizedDescription)
+                completion(.failure(error))
+            } else if authResult?.user != nil {
+                print("Success")
+                completion(.success(()))
+            }
+        }
+    }
+
 
     
 //    private func addUserToFirestore(uid: String, user: UserProfile, completion: @escaping (Result<UserProfile, Error>) -> Void) {
