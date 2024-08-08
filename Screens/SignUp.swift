@@ -36,10 +36,6 @@ struct SignUpView: View {
                 }
                 .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
                 
-                Button("Login With Google") {
-                    // Google login action here
-                }
-                .buttonStyle(ActionButton(backgroundColor: Color.blue, textColor: Color.white, borderColor: Color.blue))
             }
             .padding(.horizontal, 30)
             

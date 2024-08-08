@@ -28,9 +28,7 @@ struct SignInView: View {
                 Text("Let's match restaurants")
                     .font(.headline)
                     .padding(.top, 100)
-                
                 Spacer()
-                
                 VStack {
                     TextField("Email", text: $email)
                         .modifier(InputField())
@@ -46,12 +44,12 @@ struct SignInView: View {
                         // Login action here
                     }
                     .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
-                    .padding(.vertical, 10)
+                    .padding(.bottom, 10)
                     Button("Login With Google") {
                         // Google login action here
                     }
                     .buttonStyle(ActionButton(backgroundColor: Color.blue, textColor: Color.white, borderColor: Color.blue))
-                    .padding(.vertical, 10)
+                    .padding(.bottom, 10)
                     
                     
                     NavigationLink(destination: SignUpView()) {
