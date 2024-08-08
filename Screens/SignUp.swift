@@ -1,5 +1,5 @@
 //
-//  SignIn.swift
+//  SignUp.swift
 //  Interest-animations
 //
 //  Created by Usman Tahir Qureshi on 8/8/24.
@@ -7,18 +7,8 @@
 
 import Foundation
 import SwiftUI
-import FirebaseCore
 
-class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
-
-    return true
-  }
-}
-
-struct SignInView: View {
+struct SignUpView: View {
     @State private var email: String = ""
     @State private var password: String = ""
     
@@ -41,25 +31,21 @@ struct SignInView: View {
                     .modifier(InputField())
                     .padding(.vertical, 20)
                 
-                Button("Login") {
+                Button("Sign Up") {
                     // Login action here
                 }
                 .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
-                .padding(.vertical, 10)
+                
                 Button("Login With Google") {
                     // Google login action here
                 }
                 .buttonStyle(ActionButton(backgroundColor: Color.blue, textColor: Color.white, borderColor: Color.blue))
-                .padding(.vertical, 10)
-                Button("Create Account") {
-                    // Google login action here
-                }
-                .buttonStyle(ActionButton(backgroundColor: Color.white, textColor: Color.black, borderColor: Color.black))
-                .padding(.vertical, 10)
             }
             .padding(.horizontal, 30)
             
             Spacer()
         }
     }
+
 }
+
