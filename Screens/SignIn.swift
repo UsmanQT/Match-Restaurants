@@ -23,43 +23,57 @@ struct SignInView: View {
     @State private var password: String = ""
     
     var body: some View {
-        VStack {
-            Text("Let's match restaurants")
-                .font(.headline)
-                .padding(.top, 100)
-            
-            Spacer()
-            
+        NavigationView {
             VStack {
-                TextField("Email", text: $email)
-                    .modifier(InputField())
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+                Text("Let's match restaurants")
+                    .font(.headline)
+                    .padding(.top, 100)
                 
-                SecureField("Password", text: $password)
-                    .modifier(InputField())
-                    .padding(.vertical, 20)
+                Spacer()
                 
-                Button("Login") {
-                    // Login action here
+                VStack {
+                    TextField("Email", text: $email)
+                        .modifier(InputField())
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    
+                    SecureField("Password", text: $password)
+                        .modifier(InputField())
+                        .padding(.vertical, 20)
+                    
+                    Button("Login") {
+                        // Login action here
+                    }
+                    .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
+                    .padding(.vertical, 10)
+                    Button("Login With Google") {
+                        // Google login action here
+                    }
+                    .buttonStyle(ActionButton(backgroundColor: Color.blue, textColor: Color.white, borderColor: Color.blue))
+                    .padding(.vertical, 10)
+                    
+                    
+                    NavigationLink(destination: SignUpView()) {
+                        Text("Create Account")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.black, lineWidth: 2)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                
                 }
-                .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
-                .padding(.vertical, 10)
-                Button("Login With Google") {
-                    // Google login action here
-                }
-                .buttonStyle(ActionButton(backgroundColor: Color.blue, textColor: Color.white, borderColor: Color.blue))
-                .padding(.vertical, 10)
-                Button("Create Account") {
-                    // Google login action here
-                }
-                .buttonStyle(ActionButton(backgroundColor: Color.white, textColor: Color.black, borderColor: Color.black))
-                .padding(.vertical, 10)
+                .padding(.horizontal, 30)
+                
+                Spacer()
             }
-            .padding(.horizontal, 30)
-            
-            Spacer()
         }
+        
     }
 }
