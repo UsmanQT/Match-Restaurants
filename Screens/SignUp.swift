@@ -7,41 +7,80 @@
 
 import Foundation
 import SwiftUI
+import FirebaseAuth
 
 struct SignUpView: View {
     @State private var email: String = ""
+    @State private var username = ""
     @State private var password: String = ""
+    @State private var confirmPassword: String = ""
+    @State private var showErrorToast = false
+    @State private var toastMessage = String()
+    @State private var navigateToHome: Bool = false  // Control navigation
     
     var body: some View {
-        VStack {
-            Text("Let's match restaurants")
-                .font(.headline)
-                .padding(.top, 100)
-            
-            Spacer()
-            
+        NavigationStack{
             VStack {
-                TextField("Email", text: $email)
-                    .modifier(InputField())
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+                Text("Let's match restaurants")
+                    .font(.headline)
+                    .padding(.top, 100)
                 
-                SecureField("Password", text: $password)
-                    .modifier(InputField())
-                    .padding(.vertical, 20)
+                Spacer()
                 
-                Button("Sign Up") {
-                    // Login action here
+                VStack {
+                    TextField("Email", text: $email)
+                        .modifier(InputField())
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    
+                    TextField("User Name", text: $email)
+                        .modifier(InputField())
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    
+                    SecureField("Password", text: $password)
+                        .modifier(InputField())
+                        .padding(.vertical, 20)
+                    
+                    Button("Sign Up") {
+                        createAccount(email: email, password: password) {
+                            success, error in
+                                if !success  {
+                                    self.showErrorToast.toggle()
+                                    self.toastMessage = error?.localizedDescription ?? "Unknown error"
+                                }
+                                                
+                        }
+                    }
+                    .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
+                    
                 }
-                .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
+                .padding(.horizontal, 30)
                 
+                Spacer()
             }
-            .padding(.horizontal, 30)
             
-            Spacer()
         }
+        .navigationDestination(isPresented: $navigateToHome) {
+           HomeView()
+       }
     }
+    
+    private func createAccount(email: String, password: String, completion: @escaping (Bool, Error?) -> Void) {
+            let firebaseManager = FirebaseManager.shared
+            
+        firebaseManager.createAccount(email: email, password: password) { result in
+            switch result {
+            case .success:
+                print("User registered successfully")
+                completion(true, nil)
+            case .failure(let error):
+                print("Error signing up: \(error.localizedDescription)")
+                completion(false, error)
+            }
+        }
+        }
 
 }
 
