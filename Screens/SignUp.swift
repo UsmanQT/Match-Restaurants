@@ -41,7 +41,7 @@ struct SignUpView: View {
                     
                     SecureField("Password", text: $password)
                         .modifier(InputField())
-                        .padding(.vertical, 20)
+                        .padding(.bottom, 20)
                     
                     Button("Sign Up") {
                         createAccount(email: email, password: password) {
