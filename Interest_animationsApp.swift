@@ -40,7 +40,7 @@ struct AuthenticationSwitcher: View {
     
     var body: some View {
         if (authenticationState.isSignedIn) {
-            HomeView()
+            MainTabbedView()
         } else {
             SignInView()
         }

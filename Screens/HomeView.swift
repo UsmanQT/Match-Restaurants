@@ -11,16 +11,32 @@ import FirebaseAuth
 
 
 struct HomeView: View {
+    @Binding var presentSideMenu: Bool
+    
     var body: some View {
-        VStack {
-            Text("Home")
-            Button("log out") {
-                do {
-                    try Auth.auth().signOut()
-                } catch {
-                    print("Already logged out")
+            VStack{
+                HStack{
+                    Button{
+                        presentSideMenu.toggle()
+                    } label: {
+                        Image(systemName: "line.horizontal.3")
+                            .resizable()
+                            .frame(width: 15, height: 15)
+                    }
+                    Spacer()
                 }
+                
+                Spacer()
+                Text("Home View")
+                Button("log out") {
+                    do {
+                        try Auth.auth().signOut()
+                    } catch {
+                        print("Already logged out")
+                    }
+                }
+                Spacer()
             }
+            .padding(.horizontal, 24)
         }
-    }
 }
