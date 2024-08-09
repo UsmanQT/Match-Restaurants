@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import FirebaseAuth
 
 enum SideMenuRowType: Int, CaseIterable{
     case home = 0
@@ -98,7 +99,7 @@ struct SideMenuView: View {
                 Spacer()
             }
             
-            Text("Usman Tahir Qureshi")
+            Text(Auth.auth().currentUser?.email ?? "user")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.black)
             
