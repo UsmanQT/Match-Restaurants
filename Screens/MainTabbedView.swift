@@ -25,6 +25,8 @@ struct MainTabbedView: View {
                     .tag(2)
                 ProfileView(presentSideMenu: $presentSideMenu)
                     .tag(3)
+                ConnectView(presentSideMenu: $presentSideMenu)
+                    .tag(3)
             }
             
             SideMenu(isShowing: $presentSideMenu, content: AnyView(SideMenuView(selectedSideMenuTab: $selectedSideMenuTab, presentSideMenu: $presentSideMenu)))

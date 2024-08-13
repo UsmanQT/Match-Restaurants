@@ -24,17 +24,19 @@ struct HomeView: View {
                             .frame(width: 15, height: 15)
                     }
                     Spacer()
+                    Button("log out") {
+                        do {
+                            try Auth.auth().signOut()
+                        } catch {
+                            print("Already logged out")
+                        }
+                    }
+                    
                 }
                 
                 Spacer()
                 Text("Home View")
-                Button("log out") {
-                    do {
-                        try Auth.auth().signOut()
-                    } catch {
-                        print("Already logged out")
-                    }
-                }
+                
                 Spacer()
             }
             .padding(.horizontal, 24)
