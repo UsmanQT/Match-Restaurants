@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct ConnectView: View {
+    @State private var email: String = ""
     
     @Binding var presentSideMenu: Bool
     
@@ -26,7 +27,17 @@ struct ConnectView: View {
             }
             
             Spacer()
-            Text("Connect View")
+            Text("Add people")
+            TextField("Email", text: $email)
+                .modifier(InputField())
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button("Send Invitation") {
+                
+            }
+            .buttonStyle(ActionButton(backgroundColor: Color.green, textColor: Color.white, borderColor: Color.green))
+            .padding(.bottom, 10)
             Spacer()
         }
         .padding(.horizontal, 24)
