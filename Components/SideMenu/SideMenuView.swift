@@ -12,9 +12,10 @@ import FirebaseAuth
 enum SideMenuRowType: Int, CaseIterable{
     case home = 0
     case favorite
-    case chat
+    case friends
     case profile
     case connect
+    
     
     var title: String{
         switch self {
@@ -22,12 +23,13 @@ enum SideMenuRowType: Int, CaseIterable{
             return "Home"
         case .favorite:
             return "Explore"
-        case .chat:
-            return "Chat"
+        case .friends:
+            return "Friends"
         case .profile:
             return "Profile"
         case .connect:
             return "Connect"
+        
         }
     }
     
@@ -37,8 +39,8 @@ enum SideMenuRowType: Int, CaseIterable{
             return "home"
         case .favorite:
             return "explore"
-        case .chat:
-            return "chat"
+        case .friends:
+            return "Friends"
         case .profile:
             return "profile"
         case .connect:

@@ -51,6 +51,7 @@ struct ConnectView: View {
                     selectedUserEmail = user.email
                 }
             }
+            Spacer()
         }
         .padding(.horizontal, 24)
     }

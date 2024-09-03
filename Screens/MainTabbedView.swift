@@ -21,14 +21,13 @@ struct MainTabbedView: View {
                     .tag(0)
                 ExploreView(presentSideMenu: $presentSideMenu)
                     .tag(1)
-                ChatView(presentSideMenu: $presentSideMenu)
+                FriendsView(presentSideMenu: $presentSideMenu)
                     .tag(2)
                 ProfileView(presentSideMenu: $presentSideMenu)
                     .tag(3)
                 ConnectView(presentSideMenu: $presentSideMenu)
                     .tag(4)
             }
-            
             SideMenu(isShowing: $presentSideMenu, content: AnyView(SideMenuView(selectedSideMenuTab: $selectedSideMenuTab, presentSideMenu: $presentSideMenu)))
         }
     }
