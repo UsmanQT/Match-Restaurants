@@ -11,6 +11,7 @@ import SwiftUI
 struct ConnectView: View {
     @State private var email: String = ""
     @ObservedObject var viewModel = UsersViewModel()
+    @State private var selectedUserEmail: String = ""
     
     @Binding var presentSideMenu: Bool
     
@@ -29,7 +30,7 @@ struct ConnectView: View {
             
             Spacer()
             Text("Add people")
-            TextField("Email", text: $email)
+            TextField("Email", text: selectedUserEmail.isEmpty ? $email: $selectedUserEmail)
                 .modifier(InputField())
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
@@ -44,6 +45,10 @@ struct ConnectView: View {
                 VStack(alignment: .leading) {
                     Text(user.email)
                         .font(.subheadline)
+                }
+                .onTapGesture {
+                    // Update the text field when a user is tapped
+                    selectedUserEmail = user.email
                 }
             }
         }
