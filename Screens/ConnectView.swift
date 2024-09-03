@@ -59,13 +59,45 @@ struct ConnectView: View {
                 VStack(alignment: .leading) {
                     Text(user.email)
                         .font(.subheadline)
+                    
+                    if let status = viewModel.getFriendRequestStatus(for: user.id!) {
+                        Text("Request Status: \(status.rawValue)")
+                            .font(.caption)
+                            .foregroundColor(status == .requested ? .orange : (status == .accepted ? .green : .red))
+                    } else {
+                        Text("Request Status: Not Sent")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                                    
+                    if let status = viewModel.getFriendRequestStatus(for: user.id!), status == .requested {
+                        Button(action: {
+                            if let receiverId = user.id {
+                                viewModel.cancelFriendRequest(to: receiverId)
+                            }
+                        }) {
+                            Text("Cancel")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
+                    }
                 }
+                .contentShape(Rectangle())
                 .onTapGesture {
                     // Update the text field when a user is tapped
                     selectedUserEmail = user.email
                     selectedUserId = user.id!
                 }
             }
+            .onAppear {
+                        viewModel.startListeningForRequestStatuses() // Start listening for real-time updates
+                    }
+            .onDisappear {
+                viewModel.listenerRegistration?.remove() // Clean up the listener when the view disappears
+            }
+            
             Spacer()
         }
         .padding(.horizontal, 24)
