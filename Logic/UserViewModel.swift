@@ -144,11 +144,23 @@ class UsersViewModel: ObservableObject {
     }
     
     func fetchReceivedFriendRequests() {
-        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
-        let userRef = db.collection("users").document(currentUserId)
-        
-        userRef.getDocument { [weak self] (document, error) in
-            if let document = document, document.exists {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("No user is currently logged in.")
+            return
+        }
+
+        listenerRegistration = db.collection("users").document(currentUserId)
+            .addSnapshotListener { [weak self] (documentSnapshot, error) in
+                if let error = error {
+                    print("Error fetching friend requests: \(error)")
+                    return
+                }
+
+                guard let document = documentSnapshot, document.exists else {
+                    print("Document does not exist")
+                    return
+                }
+
                 do {
                     if let data = document.data(),
                        let receivedRequestsData = data["receivedFriendRequest"] as? [[String: Any]] {
@@ -160,12 +172,9 @@ class UsersViewModel: ObservableObject {
                 } catch {
                     print("Error decoding friend requests: \(error)")
                 }
-            } else {
-                print("Document does not exist")
             }
-        }
     }
-    
+
     func searchUser(query: String) {
         if query.isEmpty {
             filteredUsers = users
