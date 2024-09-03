@@ -7,11 +7,13 @@
 
 import Foundation
 import SwiftUI
+import FirebaseAuth
 
 struct ConnectView: View {
     @State private var email: String = ""
     @ObservedObject var viewModel = UsersViewModel()
     @State private var selectedUserEmail: String = ""
+    @State private var selectedUserId: String = ""
     
     @Binding var presentSideMenu: Bool
     
@@ -36,7 +38,18 @@ struct ConnectView: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
             Button("Send Invitation") {
-                print("anything?")
+                guard let currentUserId = Auth.auth().currentUser?.uid else {
+                    print("Error: Current user ID is missing")
+                    return
+                }
+                FirebaseManager.shared.sendFriendRequest(senderId: currentUserId, receiverId: selectedUserId) {result in
+                    switch result {
+                    case .success():
+                        print("Friend request sent successfully")
+                    case .failure(let error):
+                        print("Error sending friend request: \(error.localizedDescription)")
+                    }
+                }
             }
             .disabled(selectedUserEmail.isEmpty && email.isEmpty ? true : false)
             .buttonStyle(ActionButton(backgroundColor: selectedUserEmail.isEmpty && email.isEmpty ? Color.gray : Color.green, textColor: Color.white, borderColor: selectedUserEmail.isEmpty && email.isEmpty ? Color.gray : Color.green))
@@ -50,6 +63,7 @@ struct ConnectView: View {
                 .onTapGesture {
                     // Update the text field when a user is tapped
                     selectedUserEmail = user.email
+                    selectedUserId = user.id!
                 }
             }
             Spacer()
