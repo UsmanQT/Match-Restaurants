@@ -21,19 +21,7 @@ class FirebaseManager {
             FirebaseApp.configure()
         }
     }
-    
-    func createAccount(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
-            if let error = error {
-                // Pass the error back to the completion handler
-                completion(.failure(error))
-                print("Error creating account: \(error.localizedDescription)")
-            } else if authResult != nil {
-                // Account created successfully
-                completion(.success(()))
-            }
-        }
-    }
+
     
     func login(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
@@ -46,25 +34,30 @@ class FirebaseManager {
             }
         }
     }
-
-
     
-//    private func addUserToFirestore(uid: String, user: UserProfile, completion: @escaping (Result<UserProfile, Error>) -> Void) {
-//        let userRef = Firestore.firestore().collection("users").document(uid)
-//        
-//        userRef.setData([
-//            "displayName": user.displayName,
-//            "bio": user.bio,
-//            "email": user.email
-//        ]) { error in
-//            if let error = error {
-//                completion(.failure(error))
-//                print(error.localizedDescription)
-//            } else {
-//                completion(.success(user))
-//                print("User added to Firestore successfully")
-//            }
-//        }
-//    }
+    func signUp(email: String, password: String, username: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+            if let error = error {
+                print("Error signing up:", error.localizedDescription)
+                completion(.failure(error))
+            } else if let authResult = authResult {
+                let userId = authResult.user.uid
+                let userData: [String: String] = [
+                    "displayName": username,
+                    "email": email
+                ]
+                Firestore.firestore().collection("users").addDocument(data:  userData) { error in
+                    if let error = error {
+                        print("Error creating user document:", error.localizedDescription)
+                        completion(.failure(error))
+                    } else {
+                        print("User signed up and document created successfully")
+                        completion(.success(()))
+                    }
+                }
+            }
+        }
+    }
+
     
 }

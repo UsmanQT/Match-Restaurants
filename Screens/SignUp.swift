@@ -43,14 +43,17 @@ struct SignUpView: View {
                         .modifier(InputField())
                         .padding(.bottom, 20)
                     
+                    
                     Button("Sign Up") {
-                        createAccount(email: email, password: password) {
-                            success, error in
-                                if !success  {
-                                    self.showErrorToast.toggle()
-                                    self.toastMessage = error?.localizedDescription ?? "Unknown error"
-                                }
-                                                
+                        FirebaseManager.shared.signUp(email: self.email, password: self.password, username: self.username) { result in
+                            switch result {
+                            case .success:
+                                print("User signed up successfully")
+                                // You can navigate to the next screen here
+                            case .failure(let error):
+                                self.toastMessage = error.localizedDescription
+                                self.showErrorToast = true
+                            }
                         }
                     }
                     .buttonStyle(ActionButton(backgroundColor: Color.black, textColor: Color.white, borderColor: Color.black))
@@ -64,20 +67,11 @@ struct SignUpView: View {
         }
     }
     
-    private func createAccount(email: String, password: String, completion: @escaping (Bool, Error?) -> Void) {
-            let firebaseManager = FirebaseManager.shared
-            
-        firebaseManager.createAccount(email: email, password: password) { result in
-            switch result {
-            case .success:
-                print("User registered successfully")
-                completion(true, nil)
-            case .failure(let error):
-                print("Error signing up: \(error.localizedDescription)")
-                completion(false, error)
-            }
-        }
-    }
+    
+
+    
+
+
 
 }
 
