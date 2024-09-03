@@ -6,7 +6,8 @@
 //
 
 import Foundation
-struct FriendRequest: Codable {
+struct FriendRequest: Codable, Identifiable {
+    var id: String {senderId}
     var receiverId: String
     var senderId: String
     var status: FriendRequestStatus

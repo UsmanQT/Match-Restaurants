@@ -12,6 +12,8 @@ import FirebaseAuth
 
 class UsersViewModel: ObservableObject {
     @Published var users: [UserData] = []
+    @Published var filteredUsers: [UserData] = []
+    @Published var receivedRequests: [FriendRequest] = []
     private var db = Firestore.firestore()
     var listenerRegistration: ListenerRegistration?
     @Published var requestStatuses: [String: FriendRequestStatus] = [:] // User ID to status map
@@ -86,41 +88,146 @@ class UsersViewModel: ObservableObject {
     }
     
     func cancelFriendRequest(to receiverId: String) {
-            guard let currentUserId = Auth.auth().currentUser?.uid else { return }
-            
-            // Reference to the current user's document
-            let userRef = db.collection("users").document(currentUserId)
-            
-            // Start a transaction to safely remove the request
-            db.runTransaction({ (transaction, errorPointer) -> Any? in
-                let userDocument: DocumentSnapshot
-                do {
-                    try userDocument = transaction.getDocument(userRef)
-                } catch let fetchError as NSError {
-                    print("Error fetching user document: \(fetchError)")
-                    errorPointer?.pointee = fetchError
-                    return nil
-                }
-                
-                guard var sentRequests = userDocument.data()?["sentFriendRequests"] as? [[String: Any]] else {
-                    return nil
-                }
-                
-                // Find and remove the request
-                if let index = sentRequests.firstIndex(where: { $0["receiverId"] as? String == receiverId }) {
-                    sentRequests.remove(at: index)
-                    transaction.updateData(["sentFriendRequests": sentRequests], forDocument: userRef)
-                }
-                
+        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
+        
+        // References to the current user's document and receiver's document
+        let currentUserRef = db.collection("users").document(currentUserId)
+        let receiverRef = db.collection("users").document(receiverId)
+        
+        // Start a transaction to safely remove the request from both users
+        db.runTransaction({ (transaction, errorPointer) -> Any? in
+            // Fetch current user's document
+            let currentUserDocument: DocumentSnapshot
+            do {
+                try currentUserDocument = transaction.getDocument(currentUserRef)
+            } catch let fetchError as NSError {
+                print("Error fetching current user document: \(fetchError)")
+                errorPointer?.pointee = fetchError
                 return nil
-            }) { (object, error) in
-                if let error = error {
-                    print("Error removing request: \(error)")
-                } else {
-                    print("Request successfully removed")
+            }
+            
+            // Fetch receiver's document
+            let receiverDocument: DocumentSnapshot
+            do {
+                try receiverDocument = transaction.getDocument(receiverRef)
+            } catch let fetchError as NSError {
+                print("Error fetching receiver document: \(fetchError)")
+                errorPointer?.pointee = fetchError
+                return nil
+            }
+            
+            guard var sentRequests = currentUserDocument.data()?["sentFriendRequests"] as? [[String: Any]],
+                  var receivedRequests = receiverDocument.data()?["receivedFriendRequest"] as? [[String: Any]] else {
+                return nil
+            }
+            
+            // Find and remove the request from the current user's sent requests
+            if let index = sentRequests.firstIndex(where: { $0["receiverId"] as? String == receiverId }) {
+                sentRequests.remove(at: index)
+                transaction.updateData(["sentFriendRequests": sentRequests], forDocument: currentUserRef)
+            }
+            
+            // Find and remove the request from the receiver's received requests
+            if let index = receivedRequests.firstIndex(where: { $0["senderId"] as? String == currentUserId }) {
+                receivedRequests.remove(at: index)
+                transaction.updateData(["receivedFriendRequest": receivedRequests], forDocument: receiverRef)
+            }
+            
+            return nil
+        }) { (object, error) in
+            if let error = error {
+                print("Error removing request: \(error)")
+            } else {
+                print("Request successfully removed from both users")
+            }
+        }
+    }
+    
+    func fetchReceivedFriendRequests() {
+        guard let currentUserId = Auth.auth().currentUser?.uid else { return }
+        let userRef = db.collection("users").document(currentUserId)
+        
+        userRef.getDocument { [weak self] (document, error) in
+            if let document = document, document.exists {
+                do {
+                    if let data = document.data(),
+                       let receivedRequestsData = data["receivedFriendRequest"] as? [[String: Any]] {
+                        let decoder = JSONDecoder()
+                        self?.receivedRequests = try receivedRequestsData.map {
+                            try decoder.decode(FriendRequest.self, from: JSONSerialization.data(withJSONObject: $0))
+                        }
+                    }
+                } catch {
+                    print("Error decoding friend requests: \(error)")
+                }
+            } else {
+                print("Document does not exist")
+            }
+        }
+    }
+    
+    func searchUser(query: String) {
+        if query.isEmpty {
+            filteredUsers = users
+        } else {
+            filteredUsers = users.filter { user in
+                user.email.lowercased().contains(query.lowercased()) ||
+                user.displayName.lowercased().contains(query.lowercased())
+            }
+        }
+    }
+    
+    func searchUsers(query: String) {
+        let emailQuery = db.collection("users")
+            .whereField("email", isGreaterThanOrEqualTo: query)
+            .whereField("email", isLessThanOrEqualTo: query + "\u{f8ff}")
+        
+        let nameQuery = db.collection("users")
+            .whereField("displayName", isGreaterThanOrEqualTo: query)
+            .whereField("displayName", isLessThanOrEqualTo: query + "\u{f8ff}")
+        
+        // Clear previous search results
+        self.users.removeAll()
+        
+        emailQuery.getDocuments { (emailSnapshot, emailError) in
+            if let emailError = emailError {
+                print("Error searching users by email: \(emailError.localizedDescription)")
+                return
+            }
+            
+            if let emailDocuments = emailSnapshot?.documents {
+                for document in emailDocuments {
+                    do {
+                        let user = try document.data(as: UserData.self)
+                        self.users.append(user)
+                    } catch let error {
+                        print("Error decoding user data: \(error.localizedDescription)")
+                    }
+                }
+            }
+            
+            nameQuery.getDocuments { (nameSnapshot, nameError) in
+                if let nameError = nameError {
+                    print("Error searching users by name: \(nameError.localizedDescription)")
+                    return
+                }
+                
+                if let nameDocuments = nameSnapshot?.documents {
+                    for document in nameDocuments {
+                        do {
+                            let user = try document.data(as: UserData.self)
+                            if !self.users.contains(where: { $0.id == user.id }) {
+                                self.users.append(user)
+                            }
+                        } catch let error {
+                            print("Error decoding user data: \(error.localizedDescription)")
+                        }
+                    }
                 }
             }
         }
+    }
+
 
     
     deinit {
