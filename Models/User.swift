@@ -11,5 +11,8 @@ struct UserData: Identifiable, Codable {
     @DocumentID var id: String?
     var displayName: String
     var email: String
+    var friends: [String]?
+    var receivedFriendRequests: [FriendRequest]?
+    var sentFriendRequests: [FriendRequest]?
     // Add other fields as needed
 }

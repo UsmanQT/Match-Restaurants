@@ -15,7 +15,7 @@ struct ActionButton: ButtonStyle {
     private let unpressedScale: Double = 1
     private let animationLength: Double = 0.17
     
-    var backgroundColor: Color
+    var backgroundColor: Color?
     var textColor: Color
     var borderColor: Color
     

@@ -36,9 +36,10 @@ struct ConnectView: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
             Button("Send Invitation") {
-                
+                print("anything?")
             }
-            .buttonStyle(ActionButton(backgroundColor: Color.green, textColor: Color.white, borderColor: Color.green))
+            .disabled(selectedUserEmail.isEmpty && email.isEmpty ? true : false)
+            .buttonStyle(ActionButton(backgroundColor: selectedUserEmail.isEmpty && email.isEmpty ? Color.gray : Color.green, textColor: Color.white, borderColor: selectedUserEmail.isEmpty && email.isEmpty ? Color.gray : Color.green))
             .padding(.bottom, 10)
             Spacer()
             List(viewModel.users) { user in
