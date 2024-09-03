@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import FirebaseFirestore
+import FirebaseAuth
 
 class UsersViewModel: ObservableObject {
     @Published var users: [UserData] = []
@@ -19,6 +20,11 @@ class UsersViewModel: ObservableObject {
     }
     
     func fetchUsers() {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("No user is currently logged in.")
+            return
+        }
+
         listenerRegistration = db.collection("users")
             .addSnapshotListener { (querySnapshot, error) in
                 if let error = error {
@@ -32,7 +38,9 @@ class UsersViewModel: ObservableObject {
                 }
                 
                 self.users = documents.compactMap { document -> UserData? in
-                    try? document.data(as: UserData.self)
+                    let userData = try? document.data(as: UserData.self)
+                    // Exclude the current logged-in user
+                    return userData?.id != currentUserId ? userData : nil
                 }
             }
     }

@@ -42,18 +42,24 @@ class FirebaseManager {
                 completion(.failure(error))
             } else if let authResult = authResult {
                 let userId = authResult.user.uid
-                let userData: [String: String] = [
-                    "displayName": username,
-                    "email": email
-                ]
-                Firestore.firestore().collection("users").addDocument(data:  userData) { error in
-                    if let error = error {
-                        print("Error creating user document:", error.localizedDescription)
-                        completion(.failure(error))
-                    } else {
-                        print("User signed up and document created successfully")
-                        completion(.success(()))
+                
+                // Create a User model instance
+                let user = UserData(id: userId, displayName: username, email: email)
+                
+                do {
+                    // Add the user data to Firestore using the User model
+                    try Firestore.firestore().collection("users").document(userId).setData(from: user) { error in
+                        if let error = error {
+                            print("Error creating user document:", error.localizedDescription)
+                            completion(.failure(error))
+                        } else {
+                            print("User signed up and document created successfully")
+                            completion(.success(()))
+                        }
                     }
+                } catch let error {
+                    print("Error encoding user data: \(error.localizedDescription)")
+                    completion(.failure(error))
                 }
             }
         }
