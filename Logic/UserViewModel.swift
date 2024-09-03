@@ -176,57 +176,6 @@ class UsersViewModel: ObservableObject {
             }
         }
     }
-    
-    func searchUsers(query: String) {
-        let emailQuery = db.collection("users")
-            .whereField("email", isGreaterThanOrEqualTo: query)
-            .whereField("email", isLessThanOrEqualTo: query + "\u{f8ff}")
-        
-        let nameQuery = db.collection("users")
-            .whereField("displayName", isGreaterThanOrEqualTo: query)
-            .whereField("displayName", isLessThanOrEqualTo: query + "\u{f8ff}")
-        
-        // Clear previous search results
-        self.users.removeAll()
-        
-        emailQuery.getDocuments { (emailSnapshot, emailError) in
-            if let emailError = emailError {
-                print("Error searching users by email: \(emailError.localizedDescription)")
-                return
-            }
-            
-            if let emailDocuments = emailSnapshot?.documents {
-                for document in emailDocuments {
-                    do {
-                        let user = try document.data(as: UserData.self)
-                        self.users.append(user)
-                    } catch let error {
-                        print("Error decoding user data: \(error.localizedDescription)")
-                    }
-                }
-            }
-            
-            nameQuery.getDocuments { (nameSnapshot, nameError) in
-                if let nameError = nameError {
-                    print("Error searching users by name: \(nameError.localizedDescription)")
-                    return
-                }
-                
-                if let nameDocuments = nameSnapshot?.documents {
-                    for document in nameDocuments {
-                        do {
-                            let user = try document.data(as: UserData.self)
-                            if !self.users.contains(where: { $0.id == user.id }) {
-                                self.users.append(user)
-                            }
-                        } catch let error {
-                            print("Error decoding user data: \(error.localizedDescription)")
-                        }
-                    }
-                }
-            }
-        }
-    }
 
 
     
