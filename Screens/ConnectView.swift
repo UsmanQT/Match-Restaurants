@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ConnectView: View {
     @State private var email: String = ""
+    @ObservedObject var viewModel = UsersViewModel()
     
     @Binding var presentSideMenu: Bool
     
@@ -39,6 +40,12 @@ struct ConnectView: View {
             .buttonStyle(ActionButton(backgroundColor: Color.green, textColor: Color.white, borderColor: Color.green))
             .padding(.bottom, 10)
             Spacer()
+            List(viewModel.users) { user in
+                VStack(alignment: .leading) {
+                    Text(user.email)
+                        .font(.subheadline)
+                }
+            }
         }
         .padding(.horizontal, 24)
     }
