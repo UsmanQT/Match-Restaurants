@@ -101,7 +101,7 @@ class FirebaseManager {
             ])
             senderData["sentFriendRequests"] = sentRequests
             
-            // Add the friend request to the receiver's receivedFriendRequestsList
+            // Add the friend request to the receiver's receivedFriendRequests
             var receiverData = receiverDocument.data() ?? [:]
             var receivedRequests = (receiverData["receivedFriendRequests"] as? [[String: Any]]) ?? []
             receivedRequests.append([
@@ -113,7 +113,7 @@ class FirebaseManager {
             
             // Update the documents with the new friend request
             transaction.updateData(["sentFriendRequests": sentRequests], forDocument: senderRef)
-            transaction.updateData(["receivedFriendRequest": receivedRequests], forDocument: receiverRef)
+            transaction.updateData(["receivedFriendRequests": receivedRequests], forDocument: receiverRef)
             
             return nil
         }) { (result, error) in
@@ -126,6 +126,7 @@ class FirebaseManager {
             }
         }
     }
+
 
 
     

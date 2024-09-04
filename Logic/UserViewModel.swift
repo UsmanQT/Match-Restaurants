@@ -116,10 +116,16 @@ class UsersViewModel: ObservableObject {
                 return nil
             }
             
-            guard var sentRequests = currentUserDocument.data()?["sentFriendRequests"] as? [[String: Any]],
-                  var receivedRequests = receiverDocument.data()?["receivedFriendRequest"] as? [[String: Any]] else {
+            // Check if the documents exist
+            guard var currentUserData = currentUserDocument.data(),
+                  var receiverData = receiverDocument.data() else {
+                print("Error: Documents do not exist or data is missing")
                 return nil
             }
+            
+            // Extract lists of sent and received friend requests
+            var sentRequests = currentUserData["sentFriendRequests"] as? [[String: Any]] ?? []
+            var receivedRequests = receiverData["receivedFriendRequests"] as? [[String: Any]] ?? []
             
             // Find and remove the request from the current user's sent requests
             if let index = sentRequests.firstIndex(where: { $0["receiverId"] as? String == receiverId }) {
@@ -130,7 +136,7 @@ class UsersViewModel: ObservableObject {
             // Find and remove the request from the receiver's received requests
             if let index = receivedRequests.firstIndex(where: { $0["senderId"] as? String == currentUserId }) {
                 receivedRequests.remove(at: index)
-                transaction.updateData(["receivedFriendRequest": receivedRequests], forDocument: receiverRef)
+                transaction.updateData(["receivedFriendRequests": receivedRequests], forDocument: receiverRef)
             }
             
             return nil
@@ -142,7 +148,7 @@ class UsersViewModel: ObservableObject {
             }
         }
     }
-    
+
     func fetchReceivedFriendRequests() {
         guard let currentUserId = Auth.auth().currentUser?.uid else {
             print("No user is currently logged in.")
@@ -163,17 +169,30 @@ class UsersViewModel: ObservableObject {
 
                 do {
                     if let data = document.data(),
-                       let receivedRequestsData = data["receivedFriendRequest"] as? [[String: Any]] {
+                       let receivedRequestsData = data["receivedFriendRequests"] as? [[String: Any]] {
+                        
+                        // Filter friend requests based on senderId
                         let decoder = JSONDecoder()
-                        self?.receivedRequests = try receivedRequestsData.map {
+                        let allRequests = try receivedRequestsData.map {
                             try decoder.decode(FriendRequest.self, from: JSONSerialization.data(withJSONObject: $0))
                         }
+                        
+                        // Here, you can apply any additional filtering if needed
+                        // For instance, filter requests where senderId matches certain criteria
+                        // For now, we are directly setting all received requests
+                        self?.receivedRequests = allRequests
+                        
+                    } else {
+                        // If `receivedFriendRequests` field is missing or empty
+                        self?.receivedRequests = []
                     }
+                    
                 } catch {
                     print("Error decoding friend requests: \(error)")
                 }
             }
     }
+
 
     func searchUser(query: String) {
         if query.isEmpty {

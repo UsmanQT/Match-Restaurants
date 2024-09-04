@@ -105,13 +105,10 @@ struct ConnectView: View {
                         .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
                     } else {
                         Button(action: {
+
                             // Handle sending friend request here
-                        }) {
-                            Image(systemName: "paperplane") // Replace with your desired SF Symbol
-                                .font(.system(size: 15))
-                        }
-                        .onTapGesture {
                             selectedUserId = user.id!
+                            print(user.displayName)
                             guard let currentUserId = Auth.auth().currentUser?.uid else {
                                 print("Error: Current user ID is missing")
                                 return
@@ -124,7 +121,13 @@ struct ConnectView: View {
                                     print("Error sending friend request: \(error.localizedDescription)")
                                 }
                             }
+                        }) {
+                            Image(systemName: "paperplane") // Replace with your desired SF Symbol
+                                .font(.system(size: 15))
                         }
+//                        .onTapGesture {
+//
+//                        }
                     }
                 }
 
