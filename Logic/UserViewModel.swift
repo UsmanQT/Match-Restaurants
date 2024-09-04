@@ -204,8 +204,36 @@ class UsersViewModel: ObservableObject {
             }
         }
     }
-
-
+    
+    func isFriend(friendId: String, completion: @escaping (Bool) -> Void) {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            print("Current user is not authenticated.")
+            completion(false)
+            return
+        }
+        
+        let db = Firestore.firestore()
+        let userDocRef = db.collection("users").document(currentUserId)
+        
+        userDocRef.getDocument { (document, error) in
+            if let error = error {
+                print("Error fetching user document: \(error)")
+                completion(false)
+                return
+            }
+            
+            guard let document = document, document.exists,
+                  let data = document.data(),
+                  let friends = data["friends"] as? [String] else {
+                print("Current user document does not exist or is missing 'friends' field.")
+                completion(false)
+                return
+            }
+            
+            let isFriend = friends.contains(friendId)
+            completion(isFriend)
+        }
+    }
     
     deinit {
         listenerRegistration?.remove()

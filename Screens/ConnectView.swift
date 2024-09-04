@@ -16,6 +16,7 @@ struct ConnectView: View {
     @State private var isSheetPresented = false
     @State private var searchText: String = ""
     @State private var isOverlayRespondVisible = false
+    @State private var userFriendStatus: [String: Bool] = [:]
     
     @Binding var presentSideMenu: Bool
     
@@ -55,6 +56,11 @@ struct ConnectView: View {
                 // Display all users when search text is empty
                 List(viewModel.users) { user in
                     userRow(user: user)
+                        .onAppear {
+                            viewModel.isFriend(friendId: user.id!) { isFriend in
+                                userFriendStatus[user.id!] = isFriend
+                            }
+                        }
                 }
                 .listStyle(PlainListStyle()) // Removes default list styling
                 .background(Color.clear)
@@ -86,14 +92,19 @@ struct ConnectView: View {
     
     @ViewBuilder
     private func userRow(user: UserData) -> some View {
+        
         VStack(alignment: .leading) {
             HStack {
                 Text(user.email)
                     .font(.subheadline)
                 Spacer()
                 
+                if let isFriend = userFriendStatus[user.id!], isFriend {
+                    Text("Friend")
+                        .font(.system(size: 15))
+                }
                 // Check if the user has sent a friend request
-                if viewModel.receivedRequests.contains(where: { $0.senderId == user.id }) {
+                else if viewModel.receivedRequests.contains(where: { $0.senderId == user.id }) {
                     HStack{
                         Button(action: {
                             // Toggle dropdown for this specific user
@@ -154,6 +165,7 @@ struct ConnectView: View {
                 }
                 .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
             }
+            
 
             // Show dropdown for the selected user
             if selectedUserId == user.id {
