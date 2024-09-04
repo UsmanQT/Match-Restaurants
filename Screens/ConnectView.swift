@@ -162,7 +162,21 @@ struct ConnectView: View {
                     VStack(spacing: 0) {
                         Button(action: {
                             // Handle accept action
-                            //viewModel.acceptFriendRequest(from: user.id!)
+                            guard let currentUserId = Auth.auth().currentUser?.uid else {
+                                print("Error: Current user ID is missing")
+                                return
+                            }
+                            FirebaseManager.shared.acceptFriendRequest(senderId: selectedUserId!, receiverId: currentUserId) { result in
+                                switch result {
+                                case .success():
+                                    print("Friend request accepted successfully")
+                                    // Perform any additional actions on success, like updating the UI or notifying the user
+                                case .failure(let error):
+                                    print("Error accepting friend request: \(error.localizedDescription)")
+                                    // Handle the error, maybe show an alert to the user or log the error
+                                }
+                            }
+
                             selectedUserId = nil // Close dropdown after accepting
                         }) {
                             Text("Accept")

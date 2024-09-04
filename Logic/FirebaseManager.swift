@@ -126,6 +126,82 @@ class FirebaseManager {
             }
         }
     }
+    
+    func acceptFriendRequest(senderId: String, receiverId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        let db = Firestore.firestore()
+
+        // Reference to the sender's document
+        let senderRef = db.collection("users").document(senderId)
+        
+        // Reference to the receiver's document
+        let receiverRef = db.collection("users").document(receiverId)
+
+        db.runTransaction({ (transaction, errorPointer) -> Any? in
+            let senderDocument: DocumentSnapshot
+            let receiverDocument: DocumentSnapshot
+            
+            do {
+                // Fetch sender's document
+                senderDocument = try transaction.getDocument(senderRef)
+                // Fetch receiver's document
+                receiverDocument = try transaction.getDocument(receiverRef)
+            } catch {
+                print("Error fetching documents: \(error.localizedDescription)")
+                completion(.failure(error))
+                return nil
+            }
+            
+            // Update friend request status
+            var senderData = senderDocument.data() ?? [:]
+            var sentRequests = (senderData["sentFriendRequests"] as? [[String: Any]]) ?? []
+            if let index = sentRequests.firstIndex(where: { $0["receiverId"] as? String == receiverId }) {
+                sentRequests[index]["status"] = FriendRequestStatus.accepted.rawValue
+            }
+            senderData["sentFriendRequests"] = sentRequests
+            
+            var receiverData = receiverDocument.data() ?? [:]
+            var receivedRequests = (receiverData["receivedFriendRequests"] as? [[String: Any]]) ?? []
+            if let index = receivedRequests.firstIndex(where: { $0["senderId"] as? String == senderId }) {
+                receivedRequests[index]["status"] = FriendRequestStatus.accepted.rawValue
+            }
+            receiverData["receivedFriendRequests"] = receivedRequests
+            
+            // Remove the friend request from both lists
+            senderData["sentFriendRequests"] = sentRequests.filter { $0["receiverId"] as? String != receiverId }
+            receiverData["receivedFriendRequests"] = receivedRequests.filter { $0["senderId"] as? String != senderId }
+            
+            // Add both users to each other's friends list
+            var senderFriends = (senderData["friends"] as? [String]) ?? []
+            if !senderFriends.contains(receiverId) {
+                senderFriends.append(receiverId)
+            }
+            senderData["friends"] = senderFriends
+            
+            var receiverFriends = (receiverData["friends"] as? [String]) ?? []
+            if !receiverFriends.contains(senderId) {
+                receiverFriends.append(senderId)
+            }
+            receiverData["friends"] = receiverFriends
+            
+            // Update the documents
+            transaction.updateData(["sentFriendRequests": senderData["sentFriendRequests"] as! [[String: Any]]], forDocument: senderRef)
+            transaction.updateData(["receivedFriendRequests": receiverData["receivedFriendRequests"] as! [[String: Any]]], forDocument: receiverRef)
+            transaction.updateData(["friends": senderFriends], forDocument: senderRef)
+            transaction.updateData(["friends": receiverFriends], forDocument: receiverRef)
+            
+            return nil
+        }) { (result, error) in
+            if let error = error {
+                print("Error accepting friend request: \(error.localizedDescription)")
+                completion(.failure(error))
+            } else {
+                print("Friend request accepted successfully")
+                completion(.success(()))
+            }
+        }
+    }
+
+
 
 
 
