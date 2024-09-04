@@ -12,10 +12,10 @@ import FirebaseAuth
 struct ConnectView: View {
     @State private var email: String = ""
     @ObservedObject var viewModel = UsersViewModel()
-    @State private var selectedUserId: String = ""
+    @State private var selectedUserId: String? = nil
     @State private var isSheetPresented = false
     @State private var searchText: String = ""
-    @State private var isDataLoaded = false
+    @State private var isOverlayRespondVisible = false
     
     @Binding var presentSideMenu: Bool
     
@@ -84,75 +84,136 @@ struct ConnectView: View {
         }
     }
     
-    // Function to build user row UI
-        @ViewBuilder
-        private func userRow(user: UserData) -> some View {
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(user.email)
-                        .font(.subheadline)
-                    Spacer()
-                    
-                    // Check if the user has sent a friend request
-                    if viewModel.receivedRequests.contains(where: { $0.senderId == user.id }) {
-                        Button(action: {
-                            // Respond button action
-                            print("Respond button tapped")
-                        }) {
-                            Text("Respond")
-                                .font(.system(size: 15))
-                        }
-                        .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
-                    } else {
-                        Button(action: {
-
-                            // Handle sending friend request here
-                            selectedUserId = user.id!
-                            print(user.displayName)
-                            guard let currentUserId = Auth.auth().currentUser?.uid else {
-                                print("Error: Current user ID is missing")
-                                return
-                            }
-                            FirebaseManager.shared.sendFriendRequest(senderId: currentUserId, receiverId: selectedUserId) { result in
-                                switch result {
-                                case .success():
-                                    print("Friend request sent successfully")
-                                case .failure(let error):
-                                    print("Error sending friend request: \(error.localizedDescription)")
-                                }
-                            }
-                        }) {
-                            Image(systemName: "paperplane") // Replace with your desired SF Symbol
-                                .font(.system(size: 15))
-                        }
-                    }
-                }
-
-                // Displaying friend request status
-                if let status = viewModel.getFriendRequestStatus(for: user.id!) {
-                    Text("Request Status: \(status.rawValue)")
-                        .font(.caption)
-                        .foregroundColor(status == .requested ? .orange : (status == .accepted ? .green : .red))
-                } else {
-                    Text("Request Status: Not Sent")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-
-                // Optionally add a cancel button for sent friend requests
-                if let status = viewModel.getFriendRequestStatus(for: user.id!), status == .requested {
+    @ViewBuilder
+    private func userRow(user: UserData) -> some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Text(user.email)
+                    .font(.subheadline)
+                Spacer()
+                
+                // Check if the user has sent a friend request
+                if viewModel.receivedRequests.contains(where: { $0.senderId == user.id }) {
                     Button(action: {
-                        if let receiverId = user.id {
-                            viewModel.cancelFriendRequest(to: receiverId)
-                        }
+                        // Toggle dropdown for this specific user
+                        selectedUserId = (selectedUserId == user.id) ? nil : user.id
                     }) {
-                        Text("Cancel")
-                            .font(.caption)
-                            .foregroundColor(.red)
+                        Text("Respond")
+                            .font(.system(size: 15))
                     }
                     .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
+                } else {
+                    Button(action: {
+                        // Handle sending friend request here
+                        selectedUserId = user.id!
+                        print(user.displayName)
+                        guard let currentUserId = Auth.auth().currentUser?.uid else {
+                            print("Error: Current user ID is missing")
+                            return
+                        }
+                        FirebaseManager.shared.sendFriendRequest(senderId: currentUserId, receiverId: selectedUserId!) { result in
+                            switch result {
+                            case .success():
+                                print("Friend request sent successfully")
+                            case .failure(let error):
+                                print("Error sending friend request: \(error.localizedDescription)")
+                            }
+                        }
+                    }) {
+                        Image(systemName: "paperplane") // Replace with your desired SF Symbol
+                            .font(.system(size: 15))
+                    }
                 }
             }
-        }
 
+            // Displaying friend request status
+            if let status = viewModel.getFriendRequestStatus(for: user.id!) {
+                Text("Request Status: \(status.rawValue)")
+                    .font(.caption)
+                    .foregroundColor(status == .requested ? .orange : (status == .accepted ? .green : .red))
+            } else {
+                Text("Request Status: Not Sent")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+
+            // Optionally add a cancel button for sent friend requests
+            if let status = viewModel.getFriendRequestStatus(for: user.id!), status == .requested {
+                Button(action: {
+                    if let receiverId = user.id {
+                        viewModel.cancelFriendRequest(to: receiverId)
+                    }
+                }) {
+                    Text("Cancel")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
+            }
+
+            // Show dropdown for the selected user
+            if selectedUserId == user.id {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 0) {
+                        Button(action: {
+                            // Handle accept action
+                            //viewModel.acceptFriendRequest(from: user.id!)
+                            selectedUserId = nil // Close dropdown after accepting
+                        }) {
+                            Text("Accept")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                        }
+                        Button(action: {
+                            // Handle reject action
+                            //viewModel.rejectFriendRequest(from: user.id!)
+                            selectedUserId = nil // Close dropdown after rejecting
+                        }) {
+                            Text("Reject")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color.red)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .shadow(radius: 5)
+                    .frame(width: 150) // Adjust width as needed
+                    .padding(.top, 5) // Padding to separate from "Respond" button
+                    .transition(.opacity)
+                    .zIndex(1) // Ensure dropdown appears above other content
+                }
+                }
+                
+        }
+        .background(Color.clear.contentShape(Rectangle()).onTapGesture {
+            // Close dropdown if tapped outside
+            if selectedUserId == user.id {
+                selectedUserId = nil
+            }
+        })
+    }
+
+}
+
+struct SmallWhiteContainer: View {
+    @Binding var isVisible: Bool
+
+    var body: some View {
+        VStack {
+            HStack{
+                Button("Accept") {}
+                    .buttonStyle(DefaultButtonStyle())
+                Button("Reject") {}
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(16)
+        .frame(width: 200, height: 100) // Adjust the height here
+    }
 }
