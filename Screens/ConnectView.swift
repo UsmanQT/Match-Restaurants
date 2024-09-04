@@ -125,9 +125,6 @@ struct ConnectView: View {
                             Image(systemName: "paperplane") // Replace with your desired SF Symbol
                                 .font(.system(size: 15))
                         }
-//                        .onTapGesture {
-//
-//                        }
                     }
                 }
 
