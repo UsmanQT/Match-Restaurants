@@ -94,14 +94,18 @@ struct ConnectView: View {
                 
                 // Check if the user has sent a friend request
                 if viewModel.receivedRequests.contains(where: { $0.senderId == user.id }) {
-                    Button(action: {
-                        // Toggle dropdown for this specific user
-                        selectedUserId = (selectedUserId == user.id) ? nil : user.id
-                    }) {
-                        Text("Respond")
-                            .font(.system(size: 15))
+                    HStack{
+                        Button(action: {
+                            // Toggle dropdown for this specific user
+                            selectedUserId = (selectedUserId == user.id) ? nil : user.id
+                        }) {
+                            Text("Respond  ↓")
+                                .font(.system(size: 15))
+                        }
+                        .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
+                        
                     }
-                    .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle to avoid default button styling
+                    
                 } else {
                     Button(action: {
                         // Handle sending friend request here
@@ -162,8 +166,9 @@ struct ConnectView: View {
                             selectedUserId = nil // Close dropdown after accepting
                         }) {
                             Text("Accept")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
+                                .font(.system(size: 14))
+                                .frame(maxWidth: .infinity, minHeight: 30) // Set minimum height
+                                .padding(.horizontal, 10) // Decrease horizontal padding
                                 .background(Color.green)
                                 .foregroundColor(.white)
                         }
@@ -173,16 +178,16 @@ struct ConnectView: View {
                             selectedUserId = nil // Close dropdown after rejecting
                         }) {
                             Text("Reject")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
+                                .font(.system(size: 14))
+                                .frame(maxWidth: .infinity, minHeight: 30) // Set minimum height
+                                .padding(.horizontal, 10) // Decrease horizontal padding
                                 .background(Color.red)
                                 .foregroundColor(.white)
                         }
                     }
                     .background(Color.white)
                     .cornerRadius(8)
-                    .shadow(radius: 5)
-                    .frame(width: 150) // Adjust width as needed
+                    .frame(width: 100) // Adjust width as needed
                     .padding(.top, 5) // Padding to separate from "Respond" button
                     .transition(.opacity)
                     .zIndex(1) // Ensure dropdown appears above other content
