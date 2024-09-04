@@ -16,7 +16,9 @@ class UsersViewModel: ObservableObject {
     @Published var receivedRequests: [FriendRequest] = []
     private var db = Firestore.firestore()
     var listenerRegistration: ListenerRegistration?
+    var friendsListenerRegistration: ListenerRegistration?
     @Published var requestStatuses: [String: FriendRequestStatus] = [:] // User ID to status map
+    @Published var friendsList: [String] = []
     
     init() {
         fetchUsers()
@@ -205,37 +207,50 @@ class UsersViewModel: ObservableObject {
         }
     }
     
-    func isFriend(friendId: String, completion: @escaping (Bool) -> Void) {
+    func fetchFriends() {
+        print("fetchFriends() called")
+
         guard let currentUserId = Auth.auth().currentUser?.uid else {
-            print("Current user is not authenticated.")
-            completion(false)
+            print("No user is currently logged in.")
             return
         }
-        
-        let db = Firestore.firestore()
-        let userDocRef = db.collection("users").document(currentUserId)
-        
-        userDocRef.getDocument { (document, error) in
-            if let error = error {
-                print("Error fetching user document: \(error)")
-                completion(false)
-                return
+        print("Current User ID: \(currentUserId)")
+
+        friendsListenerRegistration = db.collection("users").document(currentUserId)
+            .addSnapshotListener { [weak self] (documentSnapshot, error) in
+                print("Snapshot listener triggered")
+                if let error = error {
+                    print("Error fetching friends: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let document = documentSnapshot else {
+                    print("Document snapshot is nil")
+                    return
+                }
+
+                if document.exists {
+                    if let data = document.data() {
+                        if let friendsData = data["friends"] as? [String] {
+                            self?.friendsList = friendsData
+                        } else {
+                            self?.friendsList = []
+                            print("Friends field is missing or not an array of strings")
+                        }
+                    } else {
+                        self?.friendsList = []
+                        print("Document data is nil")
+                    }
+                } else {
+                    print("Document does not exist")
+                    self?.friendsList = []
+                }
             }
-            
-            guard let document = document, document.exists,
-                  let data = document.data(),
-                  let friends = data["friends"] as? [String] else {
-                print("Current user document does not exist or is missing 'friends' field.")
-                completion(false)
-                return
-            }
-            
-            let isFriend = friends.contains(friendId)
-            completion(isFriend)
-        }
     }
-    
+
+
     deinit {
         listenerRegistration?.remove()
+        friendsListenerRegistration?.remove()
     }
 }

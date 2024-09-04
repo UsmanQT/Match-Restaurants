@@ -56,11 +56,6 @@ struct ConnectView: View {
                 // Display all users when search text is empty
                 List(viewModel.users) { user in
                     userRow(user: user)
-                        .onAppear {
-                            viewModel.isFriend(friendId: user.id!) { isFriend in
-                                userFriendStatus[user.id!] = isFriend
-                            }
-                        }
                 }
                 .listStyle(PlainListStyle()) // Removes default list styling
                 .background(Color.clear)
@@ -83,6 +78,7 @@ struct ConnectView: View {
         .onAppear {
             viewModel.fetchReceivedFriendRequests() // Fetch received friend requests
             viewModel.fetchUsers() // Fetch all users on view appear
+            viewModel.fetchFriends()
             viewModel.startListeningForRequestStatuses() // Start listening for request statuses
         }
         .onDisappear {
@@ -92,18 +88,17 @@ struct ConnectView: View {
     
     @ViewBuilder
     private func userRow(user: UserData) -> some View {
-        
         VStack(alignment: .leading) {
             HStack {
                 Text(user.email)
                     .font(.subheadline)
                 Spacer()
                 
-                if let isFriend = userFriendStatus[user.id!], isFriend {
-                    Text("Friend")
-                        .font(.system(size: 15))
+                if let userId = user.id, viewModel.friendsList.contains(userId) {
+                    Text("Friends")
+                        .font(.caption)
+                        .foregroundColor(.green)
                 }
-                // Check if the user has sent a friend request
                 else if viewModel.receivedRequests.contains(where: { $0.senderId == user.id }) {
                     HStack{
                         Button(action: {
