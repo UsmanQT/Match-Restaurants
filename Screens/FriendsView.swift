@@ -10,26 +10,23 @@ import SwiftUI
 
 struct FriendsView: View {
     
+    @ObservedObject var viewModel = UsersViewModel()
+    
     @Binding var presentSideMenu: Bool
     
     var body: some View {
-        VStack{
-            HStack{
-                Button{
-                    presentSideMenu.toggle()
-                } label: {
-                    Image(systemName: "line.horizontal.3")
-                        .resizable()
-                        .frame(width: 15, height: 15)
+        VStack {
+            if viewModel.friendsList.isEmpty {
+                Text("No friends found.")
+            } else {
+                List(viewModel.friendsList, id: \.self) { friendId in
+                    Text(friendId) // You can customize this to display a user's name instead of the ID
                 }
-                Spacer()
             }
-            
-            Spacer()
-            Text("Friends View")
-            Spacer()
         }
-        .padding(.horizontal, 24)
+        .onAppear {
+            viewModel.fetchFriends()
+        }
     }
 }
 
